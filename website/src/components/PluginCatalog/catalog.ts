@@ -127,6 +127,134 @@ export function tierOf(plugin: Pick<CatalogPlugin, "tier">) {
   return TIER_CONFIG[plugin.tier] || TIER_CONFIG.community;
 }
 
+/**
+ * String localizer injected by callers (Docusaurus `translate`). This module is also imported by
+ * build-time Node code (plugins/plugin-catalog-pages), so it must not import
+ * @docusaurus/Translate itself — that alias only exists inside the webpack bundle.
+ */
+export type CatalogLocalizer = (
+  args: {
+    id: string;
+    message: string;
+    description?: string;
+  },
+  /**
+   * Interpolation values. They MUST be passed as the second argument — Docusaurus'
+   * `translate({message, id}, values)` ignores an inline `values` field, which left
+   * literal `{n}` placeholders on the page.
+   */
+  values?: Record<string, string | number>,
+) => string;
+
+/** Tier badge text ("Official" / "Community") through the caller's localizer. */
+export function tierLabel(tier: string, t: CatalogLocalizer): string {
+  const cfg = TIER_CONFIG[tier] || TIER_CONFIG.community;
+  return t({
+    id: `pluginCatalog.tier.${TIER_CONFIG[tier] ? tier : "community"}.label`,
+    message: cfg.label,
+    description: "Tier badge of a plugin catalog entry",
+  });
+}
+
+/** Category label ("Desktop" / "Memory" / …) through the caller's localizer. */
+export function categoryLabel(category: string, t: CatalogLocalizer): string {
+  const cfg = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.general;
+  return t({
+    id: `pluginCatalog.category.${CATEGORY_CONFIG[category] ? category : "general"}.label`,
+    message: cfg.label,
+    description: "Category label of a plugin catalog entry",
+  });
+}
+
+/** One-line category description through the caller's localizer. */
+export function categoryBlurb(category: string, t: CatalogLocalizer): string {
+  const cfg = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.general;
+  return t({
+    id: `pluginCatalog.category.${CATEGORY_CONFIG[category] ? category : "general"}.blurb`,
+    message: cfg.blurb,
+    description: "One-line description of a plugin category",
+  });
+}
+
+/** Localized relative time ("3 days ago" / "3 天前"); null for missing/unparseable input. */
+export function formatRelativeTimeLocalized(
+  iso: string | null | undefined,
+  t: CatalogLocalizer,
+): string | null {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return null;
+  const mins = Math.floor((Date.now() - then) / 60_000);
+  if (Date.now() - then < 0 || mins < 1)
+    return t({
+      id: "pluginCatalog.time.justNow",
+      message: "just now",
+      description: "Relative time for a catalog entry touched less than a minute ago",
+    });
+  if (mins < 60)
+    return mins === 1
+      ? t({
+          id: "pluginCatalog.time.minuteAgo",
+          message: "1 minute ago",
+          description: "Relative time, a single minute",
+        })
+      : t(
+          {
+            id: "pluginCatalog.time.minutesAgo",
+            message: "{n} minutes ago",
+            description: "Relative time in minutes; {n} is the count",
+          },
+          { n: mins },
+        );
+  const hours = Math.floor(mins / 60);
+  if (hours < 24)
+    return hours === 1
+      ? t({
+          id: "pluginCatalog.time.hourAgo",
+          message: "1 hour ago",
+          description: "Relative time, a single hour",
+        })
+      : t(
+          {
+            id: "pluginCatalog.time.hoursAgo",
+            message: "{n} hours ago",
+            description: "Relative time in hours; {n} is the count",
+          },
+          { n: hours },
+        );
+  const days = Math.floor(hours / 24);
+  if (days < 30)
+    return days === 1
+      ? t({
+          id: "pluginCatalog.time.dayAgo",
+          message: "1 day ago",
+          description: "Relative time, a single day",
+        })
+      : t(
+          {
+            id: "pluginCatalog.time.daysAgo",
+            message: "{n} days ago",
+            description: "Relative time in days; {n} is the count",
+          },
+          { n: days },
+        );
+  const months = Math.floor(days / 30);
+  return months === 1
+    ? t({
+        id: "pluginCatalog.time.monthAgo",
+        message: "1 month ago",
+        description: "Relative time, a single month",
+      })
+    : t(
+        {
+          id: "pluginCatalog.time.monthsAgo",
+          message: "{n} months ago",
+          description: "Relative time in months; {n} is the count",
+        },
+        { n: months },
+      );
+}
+
 /** Tool chips a catalog card shows: the first `max` names plus how many were folded into a `+N`. */
 export const CARD_TOOL_CHIP_LIMIT = 3;
 
@@ -161,12 +289,14 @@ export function formatRelativeTime(iso?: string | null): string | null {
   return `${months} month${months === 1 ? "" : "s"} ago`;
 }
 
-/** "Sep 20, 2026" for an ISO date; null when unparseable. */
-export function formatDate(iso?: string | null): string | null {
+/** "Sep 20, 2026" / "2026年9月20日" for an ISO date; null when unparseable.
+ *  Pass the page locale (useDocusaurusContext().i18n.currentLocale) so SSR and hydration agree. */
+export function formatDate(iso?: string | null, locale = "en-US"): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (!Number.isFinite(d.getTime())) return null;
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+  const tag = locale === "zh-Hans" ? "zh-CN" : locale;
+  return d.toLocaleDateString(tag, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 }
 
 /** Split a description into prose and its "Disclosure — …" sentences (catalog convention for
