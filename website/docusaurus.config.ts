@@ -8,7 +8,7 @@ const config: Config = {
   tagline: 'The self-improving AI agent',
   favicon: 'img/favicon.ico',
 
-  url: 'https://<你的用户名>.github.io',
+  url: 'https://king-tao10.github.io',
   baseUrl: '/hermes-agent/',
 
   organizationName: 'NousResearch',

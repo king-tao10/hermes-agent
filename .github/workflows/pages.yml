@@ -59,11 +59,11 @@ jobs:
 
           cfg = pathlib.Path("website/docusaurus.config.ts")
           text = cfg.read_text(encoding="utf-8")
-          text = text.replace(
-              "url: 'https://hermes-agent.nousresearch.com'",
-              f"url: 'https://{owner}.github.io'",
-          )
-          text = re.sub(r"baseUrl: '[^']*'", f"baseUrl: '{base}'", text, count=1)
+          # 正则匹配，不依赖上游原文的精确写法（占位符也能被替换掉）
+          text, n_url = re.subn(r"url: '[^']*'", f"url: 'https://{owner}.github.io'", text, count=1)
+          text, n_base = re.subn(r"baseUrl: '[^']*'", f"baseUrl: '{base}'", text, count=1)
+          if not (n_url and n_base):
+              raise SystemExit(f"failed to rewrite url/baseUrl (url={n_url}, baseUrl={n_base})")
           cfg.write_text(text, encoding="utf-8")
 
           # 这些是绝对路径的接口常量，不会跟着 baseUrl 变
