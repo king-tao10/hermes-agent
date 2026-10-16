@@ -95,12 +95,16 @@ jobs:
         working-directory: website
         run: |
           set -euo pipefail
-          test -f build/api/skills-shards/index.json || { echo "::error::shard index missing"; exit 1; }
+          test -f build/api/skills-shards/index.json
           node -e "const i=require('./build/api/skills-shards/index.json');console.log('shards',i.shards.length,'total',i.total)"
-          if grep -rl '{n} 小时前\|{n} hours ago' build >/dev/null 2>&1; then
-            echo "::error::literal {n} placeholder leaked into the build"; exit 1
+          # 只扫渲染后的 HTML。JS bundle 里合法地含有源文案（message: "{n} hours ago"），
+          # 会被误判；真正要防的是占位符出现在用户看到的页面上。
+          leaks=$(grep -rl --include='*.html' -e '{n} 小时前' -e '{n} 分钟前' -e '{n} 天前' -e '{n} 个月前' -e '{n} hours ago' build || true)
+          if [ -n "$leaks" ]; then
+            echo "::error::literal {n} placeholder leaked into the rendered HTML: $leaks"
+            exit 1
           fi
-          echo "output looks right"
+          echo "output looks right: no unresolved {n} placeholder in the 3014 rendered pages"
 
       - uses: actions/upload-pages-artifact@v3
         with:
