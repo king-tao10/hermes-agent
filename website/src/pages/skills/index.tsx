@@ -1,47 +1,41 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
+import Translate, { translate } from "@docusaurus/Translate";
 import styles from "./styles.module.css";
 import { skillCatalogInstallIdentifier, skillCatalogInstallUrl } from "../../../../apps/shared/src/catalog-install";
+import {
+  CATALOG_STALL_TIMEOUT_MS,
+  createCatalogStore,
+  initialCatalogSnapshot,
+  type CatalogFilterResult,
+  type CatalogSnapshot,
+  type CatalogStore,
+  type IndexMeta,
+  type ShardPlan,
+  type Skill,
+} from "../../components/SkillsHub/catalogStore";
 
-interface Skill {
-  name: string;
-  description: string;
-  overview?: string;
-  category: string;
-  categoryLabel: string;
-  source: string;
-  tags: string[];
-  platforms: string[];
-  author: string;
-  version: string;
-  license?: string;
-  envVars?: string[];
-  commands?: string[];
-  docsPath?: string;
-  identifier?: string;
-  installIdentifier?: string;
-  installCmd?: string;
-  /** Clickable URL to the skill's origin (repo / detail page). Synthesized
-   *  in extract-skills.py for community skills that have no generated docs
-   *  page, so the expanded card always has somewhere to send the user. */
-  sourceUrl?: string;
-  /** Lowercase pre-joined haystack used by the search filter.
-   *  Built once at load time so per-keystroke filtering is a single
-   *  `.includes()` per skill instead of array-join + toLowerCase on
-   *  every render. Skipped on the wire — added in the loader. */
-  _search?: string;
-}
+/** `translate()` ids the page adds on top of the T1 i18n pass. The strings are
+ *  English fallbacks so the page keeps working in every locale. */
+const humanizeCategory = (key: string): string =>
+  key
+    .replace(/[-_]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((word) =>
+      CATEGORY_ACRONYMS.has(word) ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(" ");
 
-const allSkills: Skill[] = [];
+/** Acronyms the humanized fallback keeps uppercase (`autonomous-ai-agents` →
+ *  "Autonomous AI Agents"). Real labels come from the records themselves and
+ *  win as soon as one shard containing the category has arrived. */
+const CATEGORY_ACRONYMS = new Set([
+  "ai", "api", "cli", "cms", "crm", "csv", "erp", "gpu", "json", "llm", "mcp",
+  "ml", "nft", "ocr", "sdk", "seo", "sql", "stt", "tts", "ui", "ux",
+]);
 
-interface IndexMeta {
-  extractedAt?: string;
-  indexGeneratedAt?: string;
-  totalSkills?: number;
-  externalSource?: string;
-  bySource?: Record<string, number>;
-}
 const indexMeta: IndexMeta = {};
 
 function formatRelativeTime(iso?: string): string | null {
@@ -50,16 +44,64 @@ function formatRelativeTime(iso?: string): string | null {
   if (!Number.isFinite(then)) return null;
   const now = Date.now();
   const diffMs = now - then;
-  if (diffMs < 0) return "just now";
+  const justNow = translate({
+    id: "skillsHub.time.justNow",
+    message: "just now",
+    description: "Relative timestamp shown when the catalog was refreshed moments ago",
+  });
+  if (diffMs < 0) return justNow;
   const mins = Math.floor(diffMs / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  if (mins < 1) return justNow;
+  if (mins < 60)
+    return mins === 1
+      ? translate({
+          id: "skillsHub.time.minuteAgo",
+          message: "{count} minute ago",
+          description: "Relative timestamp for exactly one minute ago; {count} is the number of minutes",
+        }, { count: String(mins) })
+      : translate({
+          id: "skillsHub.time.minutesAgo",
+          message: "{count} minutes ago",
+          description: "Relative timestamp for several minutes; {count} is the number of minutes",
+        }, { count: String(mins) });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  if (hours < 24)
+    return hours === 1
+      ? translate({
+          id: "skillsHub.time.hourAgo",
+          message: "{count} hour ago",
+          description: "Relative timestamp for exactly one hour ago; {count} is the number of hours",
+        }, { count: String(hours) })
+      : translate({
+          id: "skillsHub.time.hoursAgo",
+          message: "{count} hours ago",
+          description: "Relative timestamp for several hours; {count} is the number of hours",
+        }, { count: String(hours) });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (days < 30)
+    return days === 1
+      ? translate({
+          id: "skillsHub.time.dayAgo",
+          message: "{count} day ago",
+          description: "Relative timestamp for exactly one day ago; {count} is the number of days",
+        }, { count: String(days) })
+      : translate({
+          id: "skillsHub.time.daysAgo",
+          message: "{count} days ago",
+          description: "Relative timestamp for several days; {count} is the number of days",
+        }, { count: String(days) });
   const months = Math.floor(days / 30);
-  return `${months} month${months === 1 ? "" : "s"} ago`;
+  return months === 1
+    ? translate({
+        id: "skillsHub.time.monthAgo",
+        message: "{count} month ago",
+        description: "Relative timestamp for exactly one month ago; {count} is the number of months",
+      }, { count: String(months) })
+    : translate({
+        id: "skillsHub.time.monthsAgo",
+        message: "{count} months ago",
+        description: "Relative timestamp for several months; {count} is the number of months",
+      }, { count: String(months) });
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -240,6 +282,11 @@ function highlightMatch(text: string, query: string): React.ReactNode {
 }
 
 function CopyButton({ text }: { text: string }) {
+  const copyLabel = translate({
+    id: "skillsHub.copyButton.label",
+    message: "Copy install command",
+    description: "Tooltip and accessible label of the button that copies a skill's install command",
+  });
   const [copied, setCopied] = useState(false);
   const onCopy = useCallback(
     (e: React.MouseEvent) => {
@@ -258,8 +305,8 @@ function CopyButton({ text }: { text: string }) {
     <button
       className={styles.copyBtn}
       onClick={onCopy}
-      title="Copy install command"
-      aria-label="Copy install command"
+      title={copyLabel}
+      aria-label={copyLabel}
     >
       {copied ? (
         <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
@@ -275,7 +322,19 @@ function CopyButton({ text }: { text: string }) {
           <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z" />
         </svg>
       )}
-      <span className={styles.copyBtnLabel}>{copied ? "Copied" : "Copy"}</span>
+      <span className={styles.copyBtnLabel}>
+        {copied
+          ? translate({
+              id: "skillsHub.copyButton.copied",
+              message: "Copied",
+              description: "Copy button label right after the install command was copied",
+            })
+          : translate({
+              id: "skillsHub.copyButton.copy",
+              message: "Copy",
+              description: "Copy button label before the install command is copied",
+            })}
+      </span>
     </button>
   );
 }
@@ -333,7 +392,15 @@ function SkillCard({
         </div>
 
         <p className={`${styles.cardDesc} ${expanded ? styles.cardDescFull : ""}`}>
-          {highlightMatch(skill.description || "No description available.", query)}
+          {highlightMatch(
+            skill.description ||
+              translate({
+                id: "skillsHub.card.noDescription",
+                message: "No description available.",
+                description: "Placeholder shown on a skill card that has no description",
+              }),
+            query,
+          )}
         </p>
 
         <div className={styles.cardMeta}>
@@ -343,7 +410,11 @@ function SkillCard({
               e.stopPropagation();
               onCategoryClick(skill.category);
             }}
-            title={`Filter by ${skill.categoryLabel}`}
+            title={translate({
+                id: "skillsHub.card.filterBy",
+                message: "Filter by {label}",
+                description: "Tooltip of the category button on a skill card; {label} is the category name",
+              }, { label: skill.categoryLabel || skill.category })}
           >
             {skill.categoryLabel || skill.category}
           </button>
@@ -360,7 +431,12 @@ function SkillCard({
             href={installUrl}
             onClick={(e) => e.stopPropagation()}
           >
-            Install in Hermes
+            <Translate
+              id="skillsHub.card.installInHermes"
+              description="Link on a skill card that opens the install flow in the Hermes app"
+            >
+              Install in Hermes
+            </Translate>
           </a>
         )}
 
@@ -368,13 +444,27 @@ function SkillCard({
           <div className={styles.cardDetail}>
             {skill.overview && (
               <div className={styles.overviewBlock}>
-                <span className={styles.detailLabel}>Overview</span>
+                <span className={styles.detailLabel}>
+                  <Translate
+                    id="skillsHub.card.overview"
+                    description="Label of the overview block on an expanded skill card"
+                  >
+                    Overview
+                  </Translate>
+                </span>
                 <p className={styles.overviewText}>{skill.overview}</p>
               </div>
             )}
             {(skill.envVars?.length || skill.commands?.length) ? (
               <div className={styles.prereqBlock}>
-                <span className={styles.detailLabel}>Prerequisites</span>
+                <span className={styles.detailLabel}>
+                  <Translate
+                    id="skillsHub.card.prerequisites"
+                    description="Label of the prerequisites block (env vars, commands) on an expanded skill card"
+                  >
+                    Prerequisites
+                  </Translate>
+                </span>
                 {skill.envVars?.length ? (
                   <div className={styles.prereqRow}>
                     <span className={styles.prereqKind}>env</span>
@@ -415,19 +505,40 @@ function SkillCard({
             )}
             {skill.author && (
               <div className={styles.authorRow}>
-                <span className={styles.authorLabel}>Author</span>
+                <span className={styles.authorLabel}>
+                  <Translate
+                    id="skillsHub.card.author"
+                    description="Detail row label on an expanded skill card"
+                  >
+                    Author
+                  </Translate>
+                </span>
                 <span className={styles.authorValue}>{skill.author}</span>
               </div>
             )}
             {skill.version && (
               <div className={styles.authorRow}>
-                <span className={styles.authorLabel}>Version</span>
+                <span className={styles.authorLabel}>
+                  <Translate
+                    id="skillsHub.card.version"
+                    description="Detail row label on an expanded skill card"
+                  >
+                    Version
+                  </Translate>
+                </span>
                 <span className={styles.authorValue}>{skill.version}</span>
               </div>
             )}
             {skill.license && (
               <div className={styles.authorRow}>
-                <span className={styles.authorLabel}>License</span>
+                <span className={styles.authorLabel}>
+                  <Translate
+                    id="skillsHub.card.license"
+                    description="Detail row label on an expanded skill card"
+                  >
+                    License
+                  </Translate>
+                </span>
                 <span className={styles.authorValue}>{skill.license}</span>
               </div>
             )}
@@ -445,7 +556,12 @@ function SkillCard({
                   onPick(skill);
                 }}
               >
-                + Add to this Agent
+                <Translate
+                  id="skillsHub.card.addToAgent"
+                  description="Button on a skill card inside the picker embed that adds the skill to the host agent"
+                >
+                  + Add to this Agent
+                </Translate>
               </button>
             ) : null}
             <div className={styles.cardLinks}>
@@ -455,7 +571,12 @@ function SkillCard({
                   href={`/docs/user-guide/skills/${skill.docsPath}`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  View full documentation →
+                  <Translate
+                    id="skillsHub.card.viewDocs"
+                    description="Link on an expanded skill card to the skill's generated documentation page"
+                  >
+                    View full documentation →
+                  </Translate>
                 </a>
               ) : skill.sourceUrl ? (
                 <a
@@ -465,7 +586,12 @@ function SkillCard({
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  View source ↗
+                  <Translate
+                    id="skillsHub.card.viewSource"
+                    description="Link on an expanded skill card to the skill's upstream repository"
+                  >
+                    View source ↗
+                  </Translate>
                 </a>
               ) : null}
             </div>
@@ -489,34 +615,46 @@ function StatCard({ value, label, color }: { value: number; label: string; color
 
 const PAGE_SIZE = 60;
 
-// Routes Docusaurus serves the static API JSON from. `baseUrl` is `/docs/`,
-// `static/api/` ends up at `/docs/api/`. Hardcoding here is fine because the
-// same `baseUrl` is enforced repo-wide; if it ever changes, this is the only
-// place that needs to follow.
-const SKILLS_URL = "/docs/api/skills.json";
-const META_URL = "/docs/api/skills-meta.json";
-// Idle timeout for the catalog fetch — abort only when the transfer has
-// produced no bytes for this long, so slow-but-alive downloads survive.
-const CATALOG_STALL_TIMEOUT_MS = 45_000;
 /** Mirrors the `max-width: 600px` blocks in styles.module.css. */
 const MOBILE_FILTER_QUERY = "(max-width: 600px)";
 
-function buildSearchHaystack(s: Skill): string {
-  // Pre-compute the lowercase blob the search filter scans. Done once at
-  // load time instead of per-keystroke per-skill. With 50k+ skills the
-  // per-keystroke variant was unusably slow.
-  return [
-    s.name,
-    s.description,
-    s.overview,
-    s.categoryLabel,
-    s.author,
-    ...(s.tags || []),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+/**
+ * The catalog lives in `website/static/api/skills-shards/`:
+ *
+ *   - `index.json` (~17 KB) carries the total, the per-source / per-category
+ *     counts and the shard manifest — everything the hero, the filters and the
+ *     source pills need;
+ *   - `shards/*.json` (each ≤ 2 MB) are pulled on demand;
+ *   - the old 63 MB `/docs/api/skills.json` stays as the fallback when the shard
+ *     index is not deployed yet.
+ *
+ * `catalogStore.ts` fetches the bytes and hands every payload to
+ * `catalog.worker.ts`, which parses it and builds the search index off the main
+ * thread; the store's cache (`openBrowserCache()`, i.e. `indexedDB` with a
+ * localStorage fallback) is keyed by the index's `contentHash`, so the second
+ * visit — including a language switch, which is a full page reload — is free.
+ * See `out/task3-perf-frontend.md` for the measured numbers.
+ */
+function createCatalogWorker(): Worker | null {
+  if (typeof Worker === "undefined") return null;
+  try {
+    // Bundler-recognised Worker construction: webpack/Rspack emit
+    // `catalog.worker.ts` as its own chunk. `type: "module"` keeps the emitted
+    // chunk self-contained (a classic chunk can inherit an unresolved
+    // `__webpack_require__` reference and die on load); browsers without module
+    // workers throw, and the store then parses inline instead of hanging.
+    return new Worker(new URL("../../components/SkillsHub/catalog.worker.ts", import.meta.url), {
+      type: "module",
+    });
+  } catch {
+    return null;
+  }
 }
+
+const EMPTY_FILTER_RESULT: CatalogFilterResult = {
+  records: [],
+  scope: { loaded: 0, total: 0, pending: 0, failed: 0, complete: false },
+};
 
 export default function SkillsDashboard() {
   // Picker embed mode (?embed=picker): the page is being iframed by a host
@@ -549,12 +687,16 @@ export default function SkillsDashboard() {
     []
   );
 
-  // Lazy-loaded data. Was bundled into the JS chunk (~22 MB at 50k skills,
-  // which made the initial page load unusable on mobile). Now fetched on
-  // mount from the same CDN that serves the docs.
-  const [data, setData] = useState<{ skills: Skill[]; meta: IndexMeta } | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  // Bumped by the error card's Retry button to re-run the catalog load.
+  // Catalog data. The page used to fetch a 63 MB `skills.json` on mount and
+  // JSON.parse it on the main thread while the user stared at "Loading the
+  // catalog…" for 6.4–45 s. It now fetches a ~17 KB shard index, renders the
+  // hero/filters/counts straight from it, and pulls shards on demand — bytes are
+  // parsed in a Worker and cached in IndexedDB, so a reload (a language switch
+  // is one) costs zero requests.
+  const [snapshot, setSnapshot] = useState<CatalogSnapshot>(() => initialCatalogSnapshot());
+  const storeRef = useRef<CatalogStore | null>(null);
+  // Bumped by the error card's Retry button to rebuild the store and force a
+  // fresh index (the cache may be the thing that is stale).
   const [reloadKey, setReloadKey] = useState(0);
 
   const [search, setSearch] = useState("");
@@ -575,69 +717,48 @@ export default function SkillsDashboard() {
   const filterDialogRef = useRef<HTMLElement>(null);
   const filterCloseRef = useRef<HTMLButtonElement>(null);
 
-  // The catalog comes from the docs CDN (skills.json 301s onto GitHub
-  // Pages, ~50 MB raw). A connection that silently hangs — polluted DNS,
-  // TLS resets — would otherwise leave the page on "Loading the
-  // catalog…" forever, so read the body as a stream and abort only when
-  // no bytes have arrived for CATALOG_STALL_TIMEOUT_MS. Slow-but-alive
-  // transfers keep resetting the timer and are never cut off (#97861).
+  /**
+   * One store per page instance. It owns the index/shard fetches, the Worker
+   * round-trips and the IndexedDB cache; this component only renders snapshots
+   * and calls `filterRecords()`.
+   *
+   * The stall guard from #97861 (a transfer that goes quiet for
+   * CATALOG_STALL_TIMEOUT_MS is aborted, a slow-but-alive one is not) lives in
+   * the store now: it streams the response into *bytes* and hands them to the
+   * Worker, instead of accumulating a 63 MB string here.
+   */
   useEffect(() => {
-    const ctrl = new AbortController();
-    let stallTimer: ReturnType<typeof setTimeout> | null = null;
-    const armStallTimer = () => {
-      if (stallTimer) clearTimeout(stallTimer);
-      stallTimer = setTimeout(() => ctrl.abort(), CATALOG_STALL_TIMEOUT_MS);
-    };
-    let cancelled = false;
-    const readJson = async (url: string): Promise<unknown> => {
-      const res = await fetch(url, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status} from ${url}`);
-      if (!res.body) return res.json();
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let text = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        armStallTimer();
-        text += decoder.decode(value, { stream: true });
-      }
-      return JSON.parse(text);
-    };
-    (async () => {
-      try {
-        armStallTimer();
-        const [sk, mt] = await Promise.all([
-          readJson(SKILLS_URL),
-          readJson(META_URL).catch(() => ({})),
-        ]);
-        if (cancelled) return;
-        const skillsArr = Array.isArray(sk) ? (sk as Skill[]) : [];
-        // Stamp the precomputed search haystack onto each row.
-        for (const s of skillsArr) s._search = buildSearchHaystack(s);
-        setData({ skills: skillsArr, meta: mt || {} });
-      } catch (err) {
-        if (cancelled) return;
-        if (ctrl.signal.aborted) {
-          setLoadError(
-            `catalog fetch stalled — no data received for ${CATALOG_STALL_TIMEOUT_MS / 1000}s`,
-          );
-          return;
-        }
-        setLoadError(err instanceof Error ? err.message : String(err));
-      }
-    })();
+    const store = createCatalogStore({
+      createWorker: createCatalogWorker,
+      forceIndexRefresh: reloadKey > 0,
+    });
+    storeRef.current = store;
+    setSnapshot(store.getSnapshot());
+    const unsubscribe = store.subscribe(() => setSnapshot(store.getSnapshot()));
+    store.start().catch(() => {
+      /* failures surface through the snapshot's error state */
+    });
     return () => {
-      cancelled = true;
-      ctrl.abort();
-      if (stallTimer) clearTimeout(stallTimer);
+      unsubscribe();
+      store.destroy();
+      storeRef.current = null;
     };
   }, [reloadKey]);
 
-  const retryCatalogLoad = () => {
-    setLoadError(null);
+  const retryCatalogLoad = useCallback(() => {
     setReloadKey((k) => k + 1);
-  };
+  }, []);
+
+  /** Pull everything that is still missing (used by the progress row and by an
+   *  active search, which has to see the whole catalog to be correct). */
+  const loadEveryShard = useCallback(() => {
+    storeRef.current?.loadAllShards();
+  }, []);
+
+  /** Page the catalog in: the next shards in first-paint priority order. */
+  const loadNextShardBatch = useCallback(() => {
+    storeRef.current?.loadNextShards();
+  }, []);
 
   // Debounce the search input — 150ms feels instant while preventing the
   // filter from running on every individual keystroke.
@@ -646,8 +767,36 @@ export default function SkillsDashboard() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const allSkillsLocal: Skill[] = data?.skills ?? [];
-  const indexMetaLocal: IndexMeta = data?.meta ?? indexMeta;
+  // A global search has to see the whole catalog, so it pulls what is still
+  // missing — progressively, in the background, with the progress shown next to
+  // the results. Scoped filters (source / category) only pull their own shards.
+  useEffect(() => {
+    if (debouncedSearch.trim()) storeRef.current?.loadAllShards();
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    storeRef.current?.ensureScope(sourceFilter, categoryFilter);
+  }, [sourceFilter, categoryFilter]);
+
+  const indexMetaLocal: IndexMeta = snapshot.meta ?? indexMeta;
+  // The store reports a machine-readable code so the page can keep showing the
+  // localized "stalled" message it had before the store existed.
+  const loadError = !snapshot.error
+    ? null
+    : snapshot.errorCode === "stalled"
+      ? translate(
+          {
+            id: "skillsHub.error.stalled",
+            message: "catalog fetch stalled — no data received for {seconds}s",
+            description: "Error text shown when the catalog download produced no data for a while; {seconds} is the idle timeout in seconds",
+          },
+          { seconds: String(CATALOG_STALL_TIMEOUT_MS / 1000) },
+        )
+      : snapshot.error;
+  const catalogReady = snapshot.mode !== null;
+  const totalSkills = snapshot.total;
+  const statsBySource = snapshot.bySource;
+  const shardPlans: ShardPlan[] = snapshot.shards;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -740,46 +889,87 @@ export default function SkillsDashboard() {
     };
   }, [sidebarOpen, mobileFiltersActive]);
 
+  // The filter labels below are shared by the compact toolbar and the mobile
+  // sidebar, so they are resolved once per render instead of per usage.
+  const sourceFilterLabel = translate({
+    id: "skillsHub.filter.source",
+    message: "Source",
+    description: "Label of the source (registry) filter dropdown, shown in the toolbar and in the sidebar",
+  });
+  const allSourcesLabel = translate({
+    id: "skillsHub.filter.allSources",
+    message: "All sources",
+    description: "Option that clears the source filter",
+  });
+
+  // Which source pills exist — now straight from the index's `bySource`, so no
+  // records have to be loaded to render the toolbar.
   const sources = useMemo(() => {
-    const set = new Set(allSkillsLocal.map((s) => s.source));
-    return SOURCE_ORDER.filter((s) => s === "all" || set.has(s));
-  }, [allSkillsLocal]);
+    const present = new Set(Object.keys(statsBySource));
+    return SOURCE_ORDER.filter((s) => s === "all" || present.has(s));
+  }, [statsBySource]);
+
+  // Records of the selected source that are already loaded. Used for the
+  // sidebar's per-category counts: for "All sources" the index's `byCategory` is
+  // exact and instant; for a single source the counts fill in as that source's
+  // shards arrive (the progress row says so).
+  const sourceRecords = useMemo(() => {
+    if (sourceFilter === "all") return [];
+    return (
+      storeRef.current?.filterRecords({ search: "", source: sourceFilter, category: "all" }).records ?? []
+    );
+  }, [snapshot.revision, sourceFilter]);
 
   const categoryEntries = useMemo(() => {
-    const pool =
-      sourceFilter === "all"
-        ? allSkillsLocal
-        : allSkillsLocal.filter((s) => s.source === sourceFilter);
-    const map = new Map<string, { label: string; count: number }>();
-    for (const s of pool) {
-      const key = s.category || "uncategorized";
-      const existing = map.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        map.set(key, {
-          label: s.categoryLabel || s.category || "Uncategorized",
-          count: 1,
-        });
+    const counts = new Map<string, number>();
+    if (sourceFilter === "all") {
+      for (const [key, count] of Object.entries(snapshot.byCategory)) counts.set(key, count);
+    } else {
+      // Category membership for one source comes from the shard manifest — it is
+      // exact, and needs no shard bytes.
+      for (const plan of shardPlans) {
+        if (plan.source !== sourceFilter) continue;
+        for (const category of plan.categories || []) {
+          if (!counts.has(category)) counts.set(category, 0);
+        }
+      }
+      for (const record of sourceRecords) {
+        const key = record.category || "uncategorized";
+        counts.set(key, (counts.get(key) ?? 0) + 1);
       }
     }
-    return Array.from(map.entries())
-      .sort((a, b) => b[1].count - a[1].count)
-      .map(([key, { label, count }]) => ({ key, label, count }));
-  }, [sourceFilter, allSkillsLocal]);
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, count]) => ({
+        key,
+        // Real labels are captured from the records as shards load; the
+        // humanized fallback covers categories whose shard is not here yet.
+        label: snapshot.categoryLabels[key] || humanizeCategory(key),
+        count,
+      }));
+  }, [sourceFilter, snapshot.byCategory, snapshot.categoryLabels, shardPlans, sourceRecords]);
 
-  const filtered = useMemo(() => {
-    const q = debouncedSearch.toLowerCase().trim();
-    return allSkillsLocal.filter((s) => {
-      if (sourceFilter !== "all" && s.source !== sourceFilter) return false;
-      if (categoryFilter !== "all" && s.category !== categoryFilter) return false;
-      if (q) {
-        // _search is pre-built in the load effect — single .includes() per row.
-        return (s._search || "").includes(q);
-      }
-      return true;
-    });
-  }, [debouncedSearch, sourceFilter, categoryFilter, allSkillsLocal]);
+  /**
+   * The visible records. `catalogStore.filterRecords()` scans the flat haystack
+   * of every *loaded* shard in scope (one `indexOf` pass, then a binary search
+   * per hit through the offsets array) — no per-record `_search` strings and no
+   * 101k-element array on the main thread. `scope` reports how complete the
+   * underlying shard set is, which is what the progress row and the "Load more
+   * shards" button use.
+   */
+  const filterResult = useMemo<CatalogFilterResult>(
+    () =>
+      storeRef.current?.filterRecords({
+        search: debouncedSearch,
+        source: sourceFilter,
+        category: categoryFilter,
+      }) ?? EMPTY_FILTER_RESULT,
+    [snapshot.revision, debouncedSearch, sourceFilter, categoryFilter],
+  );
+  const filtered = filterResult.records;
+  const scope = filterResult.scope;
+  /** True while more shards may still add results to the current filter. */
+  const scopeIncomplete = !snapshot.error && catalogReady && !scope.complete;
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -816,76 +1006,168 @@ export default function SkillsDashboard() {
 
   return (
     <Layout
-      title="Skills Hub"
-      description="Browse all skills and plugins available for Hermes Agent"
+      title={translate({
+          id: "skillsHub.pageTitle",
+          message: "Skills Hub",
+          description: "Browser tab title of the Skills Hub page",
+        })}
+      description={translate({
+          id: "skillsHub.pageDescription",
+          message: "Browse all skills and plugins available for Hermes Agent",
+          description: "Meta description of the Skills Hub page",
+        })}
     >
       <div className={`${styles.page} ${pickerMode ? styles.pickerMode : ""}`}>
         <header className={styles.hero}>
           <div className={styles.heroGlow} />
           <div className={styles.heroContent}>
             <p className={styles.heroEyebrow}>Hermes Agent</p>
-            <h1 className={styles.heroTitle}>Skills Hub</h1>
-            <nav className={styles.crossNav} aria-label="Catalog pages">
+            <h1 className={styles.heroTitle}>
+              <Translate
+                id="skillsHub.heroTitle"
+                description="Main heading of the Skills Hub page"
+              >
+                Skills Hub
+              </Translate>
+            </h1>
+            <nav
+              className={styles.crossNav}
+              aria-label={translate({
+                  id: "skillsHub.crossNav.label",
+                  message: "Catalog pages",
+                  description: "Accessible label of the Skills/Plugins cross-navigation in the hero",
+                })}
+            >
               <span className={`${styles.crossNavLink} ${styles.crossNavActive}`}>
-                Skills
+                <Translate
+                  id="skillsHub.crossNav.skills"
+                  description="Label of the Skills tab in the catalog cross-navigation"
+                >
+                  Skills
+                </Translate>
               </span>
               <Link className={styles.crossNavLink} to="/plugins">
-                Plugins
+                <Translate
+                  id="skillsHub.crossNav.plugins"
+                  description="Label of the Plugins tab in the catalog cross-navigation"
+                >
+                  Plugins
+                </Translate>
               </Link>
             </nav>
             <p className={styles.heroSub}>
-              Discover, search, and install from{" "}
-              <strong className={styles.heroAccent}>
-                {data ? allSkillsLocal.length.toLocaleString() : "…"}
-              </strong>{" "}
-              skills across {sources.length - 1} registries
+              <Translate
+                id="skillsHub.heroSub"
+                description="Hero sentence of the Skills Hub page; {count} is the highlighted skill count and {registries} the number of registries"
+                values={{
+                  count: (
+                    <strong className={styles.heroAccent}>
+                      {catalogReady ? totalSkills.toLocaleString() : "…"}
+                    </strong>
+                  ),
+                  registries: String(sources.length - 1),
+                }}
+              >
+                {"Discover, search, and install from {count} skills across {registries} registries"}
+              </Translate>
               {loadError && (
                 <span style={{ color: "#f87171", marginLeft: 8 }}>
-                  · failed to load catalog ({loadError})
+                  {translate({
+                      id: "skillsHub.hero.loadFailed",
+                      message: "· failed to load catalog ({error})",
+                      description: "Shown in the hero when the skills catalog could not be loaded; {error} is the error text",
+                    }, { error: String(loadError) })}
                 </span>
               )}
             </p>
             {(indexMetaLocal?.indexGeneratedAt || indexMetaLocal?.extractedAt) && (
               <p className={styles.heroSub} style={{ fontSize: "0.85rem", opacity: 0.75 }}>
-                Catalog refreshed{" "}
+                <Translate
+                  id="skillsHub.catalog.refreshed"
+                  description="Sentence placed before the relative time of the last catalog refresh"
+                >
+                  Catalog refreshed
+                </Translate>{" "}
                 <span title={indexMetaLocal.indexGeneratedAt || indexMetaLocal.extractedAt}>
                   {formatRelativeTime(
                     indexMetaLocal.indexGeneratedAt || indexMetaLocal.extractedAt,
-                  ) || "recently"}
+                  ) ||
+                    translate({
+                      id: "skillsHub.catalog.recently",
+                      message: "recently",
+                      description: "Fallback shown when the last catalog refresh time is unknown",
+                    })}
                 </span>
-                {" "}· auto-rebuilt twice daily
+                {" "}
+                ·{" "}
+                <Translate
+                  id="skillsHub.catalog.rebuildNote"
+                  description="Note that the catalog index is rebuilt automatically twice a day"
+                >
+                  auto-rebuilt twice daily
+                </Translate>
               </p>
             )}
 
             <p className={styles.heroSub} style={{ fontSize: "0.85rem", opacity: 0.85 }}>
-              <a href="https://portal.nousresearch.com/terms" target="_blank" rel="noopener noreferrer">Terms</a>
+              <a href="https://portal.nousresearch.com/terms" target="_blank" rel="noopener noreferrer">
+                <Translate
+                  id="skillsHub.footer.terms"
+                  description="Link label to the Nous Research terms of service"
+                >
+                  Terms
+                </Translate>
+              </a>
               {" • "}
-              <a href="https://portal.nousresearch.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+              <a href="https://portal.nousresearch.com/privacy" target="_blank" rel="noopener noreferrer">
+                <Translate
+                  id="skillsHub.footer.privacy"
+                  description="Link label to the Nous Research privacy policy"
+                >
+                  Privacy Policy
+                </Translate>
+              </a>
             </p>
 
             <div className={styles.statsRow}>
+              {/* Counts come from the shard index, so the hero is complete
+                  before a single skill record has been downloaded. */}
               <StatCard
-                value={allSkillsLocal.filter((s) => s.source === "built-in").length}
-                label="Built-in"
+                value={statsBySource["built-in"] ?? 0}
+                label={translate({
+                    id: "skillsHub.stats.builtIn",
+                    message: "Built-in",
+                    description: "Hero statistic label: skills shipped with Hermes Agent",
+                  })}
                 color="#4ade80"
               />
               <StatCard
-                value={allSkillsLocal.filter((s) => s.source === "optional").length}
-                label="Optional"
+                value={statsBySource["optional"] ?? 0}
+                label={translate({
+                    id: "skillsHub.stats.optional",
+                    message: "Optional",
+                    description: "Hero statistic label: optional first-party skills",
+                  })}
                 color="#fbbf24"
               />
               <StatCard
                 value={
-                  allSkillsLocal.filter(
-                    (s) => s.source !== "built-in" && s.source !== "optional"
-                  ).length
+                  totalSkills - (statsBySource["built-in"] ?? 0) - (statsBySource["optional"] ?? 0)
                 }
-                label="Community"
+                label={translate({
+                    id: "skillsHub.stats.community",
+                    message: "Community",
+                    description: "Hero statistic label: skills from third-party registries",
+                  })}
                 color="#60a5fa"
               />
               <StatCard
-                value={new Set(allSkillsLocal.map((s) => s.category)).size}
-                label="Categories"
+                value={snapshot.categoryCount}
+                label={translate({
+                    id: "skillsHub.stats.categories",
+                    message: "Categories",
+                    description: "Hero statistic label: number of distinct skill categories",
+                  })}
                 color="#a78bfa"
               />
             </div>
@@ -905,7 +1187,11 @@ export default function SkillsDashboard() {
             <input
               ref={searchRef}
               type="text"
-              placeholder="Search skills"
+              placeholder={translate({
+                  id: "skillsHub.searchPlaceholder",
+                  message: "Search skills",
+                  description: "Placeholder of the skills search box",
+                })}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={styles.searchInput}
@@ -931,7 +1217,12 @@ export default function SkillsDashboard() {
             aria-controls="skills-directory-filters"
             onClick={() => setSidebarOpen((open) => !open)}
           >
-            Filters
+            <Translate
+              id="skillsHub.filtersToggle"
+              description="Label of the button that opens the skill filters on mobile"
+            >
+              Filters
+            </Translate>
             {(sourceFilter !== "all" || categoryFilter !== "all") && (
               <span className={styles.activeFilterCount}>
                 {Number(sourceFilter !== "all") + Number(categoryFilter !== "all")}
@@ -940,18 +1231,26 @@ export default function SkillsDashboard() {
           </button>
 
           <label className={styles.compactSelect}>
-            <span>Source</span>
+            <span>{sourceFilterLabel}</span>
             <select value={sourceFilter} onChange={(e) => handleSourceChange(e.target.value)}>
               {sources.map((src) => (
-                <option key={src} value={src}>{src === "all" ? "All sources" : SOURCE_CONFIG[src]?.label || src}</option>
+                <option key={src} value={src}>{src === "all" ? allSourcesLabel : SOURCE_CONFIG[src]?.label || src}</option>
               ))}
             </select>
           </label>
 
           <label className={styles.compactSelect}>
-            <span>Category</span>
+            <span>{translate({
+                id: "skillsHub.filter.category",
+                message: "Category",
+                description: "Label of the category filter dropdown",
+              })}</span>
             <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-              <option value="all">All categories</option>
+              <option value="all">{translate({
+                  id: "skillsHub.filter.allCategories",
+                  message: "All categories",
+                  description: "Option that clears the category filter",
+                })}</option>
               {categoryEntries.map((cat) => <option key={cat.key} value={cat.key}>{cat.label}</option>)}
             </select>
           </label>
@@ -961,10 +1260,7 @@ export default function SkillsDashboard() {
             {sources.map((src) => {
               const active = sourceFilter === src;
               const conf = SOURCE_CONFIG[src];
-              const count =
-                src === "all"
-                  ? allSkillsLocal.length
-                  : allSkillsLocal.filter((s) => s.source === src).length;
+              const count = src === "all" ? totalSkills : statsBySource[src] ?? 0;
               return (
                 <button
                   key={src}
@@ -980,7 +1276,13 @@ export default function SkillsDashboard() {
                       : undefined
                   }
                 >
-                  {src === "all" ? "All" : conf?.label || src}
+                  {src === "all"
+                    ? translate({
+                        id: "skillsHub.filter.all",
+                        message: "All",
+                        description: "Source pill that clears the source filter",
+                      })
+                    : conf?.label || src}
                   <span className={styles.srcCount}>{count}</span>
                 </button>
               );
@@ -998,27 +1300,43 @@ export default function SkillsDashboard() {
             className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}
           >
             <div className={styles.sidebarHeader}>
-              <h2 id="skills-directory-filters-title" className={styles.sidebarTitle}>Categories</h2>
+              <h2 id="skills-directory-filters-title" className={styles.sidebarTitle}>
+                <Translate
+                  id="skillsHub.sidebar.categories"
+                  description="Title of the category filter sidebar"
+                >
+                  Categories
+                </Translate>
+              </h2>
               {categoryFilter !== "all" && (
                 <button className={styles.sidebarClear} onClick={() => setCategoryFilter("all")}>
-                  Clear
+                  <Translate
+                    id="skillsHub.sidebar.clear"
+                    description="Button that clears the selected category in the sidebar"
+                  >
+                    Clear
+                  </Translate>
                 </button>
               )}
               <button
                 ref={filterCloseRef}
                 type="button"
                 className={styles.sidebarClose}
-                aria-label="Close skill filters"
+                aria-label={translate({
+                    id: "skillsHub.sidebar.close",
+                    message: "Close skill filters",
+                    description: "Accessible label of the button that closes the mobile filter dialog",
+                  })}
                 onClick={() => setSidebarOpen(false)}
               >
                 <span aria-hidden="true">×</span>
               </button>
             </div>
             <label className={styles.sidebarSourceSelect}>
-              <span>Source</span>
+              <span>{sourceFilterLabel}</span>
               <select value={sourceFilter} onChange={(e) => handleSourceChange(e.target.value)}>
                 {sources.map((src) => (
-                  <option key={src} value={src}>{src === "all" ? "All sources" : SOURCE_CONFIG[src]?.label || src}</option>
+                  <option key={src} value={src}>{src === "all" ? allSourcesLabel : SOURCE_CONFIG[src]?.label || src}</option>
                 ))}
               </select>
             </label>
@@ -1031,7 +1349,14 @@ export default function SkillsDashboard() {
                 }}
               >
                 <span className={styles.catItemIcon}>{"\u{1F4CB}"}</span>
-                <span className={styles.catItemLabel}>All Skills</span>
+                <span className={styles.catItemLabel}>
+                  <Translate
+                    id="skillsHub.sidebar.allSkills"
+                    description="Sidebar entry that removes the category filter"
+                  >
+                    All Skills
+                  </Translate>
+                </span>
                 <span className={styles.catItemCount}>{filtered.length}</span>
               </button>
               {categoryEntries.map((cat) => (
@@ -1054,7 +1379,17 @@ export default function SkillsDashboard() {
             {(search || sourceFilter !== "all" || categoryFilter !== "all") && (
               <div className={styles.filterSummary}>
                 <span className={styles.filterCount}>
-                  {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+                  {filtered.length === 1
+                    ? translate({
+                        id: "skillsHub.results.one",
+                        message: "1 result",
+                        description: "Filter summary when exactly one skill matches",
+                      })
+                    : translate({
+                        id: "skillsHub.results.many",
+                        message: "{count} results",
+                        description: "Filter summary with the number of matching skills",
+                      }, { count: String(filtered.length) })}
                 </span>
                 {search && (
                   <span className={styles.filterChip}>
@@ -1076,30 +1411,123 @@ export default function SkillsDashboard() {
                   </span>
                 )}
                 <button className={styles.clearAllBtn} onClick={clearAll}>
-                  Clear all
+                  <Translate
+                    id="skillsHub.results.clearAll"
+                    description="Button in the filter summary that clears every filter"
+                  >
+                    Clear all
+                  </Translate>
                 </button>
               </div>
             )}
 
-            {!data && !loadError ? (
+            {/* Shard progress. The catalog is no longer one 63 MB download, so
+                the page has to say out loud how much of it is in memory — both
+                for the raw shard counts and for the "this search is still
+                filling in" case (a non-empty `debouncedSearch` pulls the rest
+                via loadAllShards). */}
+            {scopeIncomplete && (
+              <div className={styles.filterSummary}>
+                <span className={styles.filterCount}>
+                  {translate(
+                    {
+                      id: "skillsHub.progress.shards",
+                      message: "{loaded}/{total} shards loaded · {records} skills available",
+                      description: "Catalog progress row: how many of the shards behind the current filter are loaded, and how many records they hold",
+                    },
+                    {
+                      loaded: String(scope.loaded),
+                      total: String(scope.total),
+                      records: snapshot.loadedRecords.toLocaleString(),
+                    },
+                  )}
+                </span>
+                {snapshot.pendingShards > 0 && (
+                  <span className={styles.filterChip}>
+                    {translate(
+                      {
+                        id: "skillsHub.progress.loading",
+                        message: "loading {count} more…",
+                        description: "Catalog progress row: number of shards currently being fetched",
+                      },
+                      { count: String(snapshot.pendingShards) },
+                    )}
+                  </span>
+                )}
+                <button className={styles.clearAllBtn} onClick={loadEveryShard}>
+                  {translate({
+                    id: "skillsHub.progress.loadAll",
+                    message: "Load the whole catalog",
+                    description: "Button in the catalog progress row that pulls every remaining shard",
+                  })}
+                </button>
+              </div>
+            )}
+
+            {!loadError && (!catalogReady || (snapshot.loadedRecords === 0 && scope.pending > 0)) ? (
               <div className={styles.empty}>
                 <div className={styles.loadingSpinner} />
-                <h3 className={styles.emptyTitle}>Loading the catalog…</h3>
+                <h3 className={styles.emptyTitle}>
+                  <Translate
+                    id="skillsHub.loading.title"
+                    description="Title of the card shown while the skills catalog is downloading"
+                  >
+                    Loading the catalog…
+                  </Translate>
+                </h3>
                 <p className={styles.emptyDesc}>
-                  Fetching 88k+ skills across every registry. One moment.
+                  <Translate
+                    id="skillsHub.loading.desc"
+                    description="Progress hint shown while the skills catalog is downloading"
+                  >
+                    Fetching 88k+ skills across every registry. One moment.
+                  </Translate>
                 </p>
+                {snapshot.indexBytes > 0 && (
+                  <p className={styles.emptyDesc}>
+                    {translate(
+                      {
+                        id: "skillsHub.loading.progress",
+                        message: "Index {size} ready in {ms} ms · {loaded}/{total} shards loaded by the Worker",
+                        description: "Loading card progress line: size and parse time of the shard index, plus how many shards the Worker has parsed",
+                      },
+                      {
+                        size: `${Math.round(snapshot.indexBytes / 1024)} KB`,
+                        ms: String(Math.round(snapshot.indexParseMs)),
+                        loaded: String(scope.loaded),
+                        total: String(scope.total),
+                      },
+                    )}
+                  </p>
+                )}
               </div>
             ) : loadError ? (
               <div className={styles.empty}>
                 <div className={styles.emptyIcon}>{"\u26A0\uFE0F"}</div>
-                <h3 className={styles.emptyTitle}>Couldn't load the catalog</h3>
+                <h3 className={styles.emptyTitle}>
+                  <Translate
+                    id="skillsHub.error.title"
+                    description="Title of the card shown when the skills catalog fails to load"
+                  >
+                    Couldn't load the catalog
+                  </Translate>
+                </h3>
                 <p className={styles.emptyDesc}>
-                  {loadError}. The catalog is served from a public CDN —
-                  restricted networks may need a working proxy. Check your
-                  connection and retry.
+                  <Translate
+                    id="skillsHub.error.desc"
+                    description="Explanation shown when the skills catalog fails to load; {error} is the error text"
+                    values={{ error: String(loadError) }}
+                  >
+                    {"{error}. The catalog is served from a public CDN — restricted networks may need a working proxy. Check your connection and retry."}
+                  </Translate>
                 </p>
                 <button className={styles.emptyReset} onClick={retryCatalogLoad}>
-                  Retry
+                  <Translate
+                    id="skillsHub.error.retry"
+                    description="Button that retries loading the skills catalog"
+                  >
+                    Retry
+                  </Translate>
                 </button>
               </div>
             ) : visible.length > 0 ? (
@@ -1124,26 +1552,60 @@ export default function SkillsDashboard() {
                     );
                   })}
                 </div>
-                {hasMore && (
+                {hasMore ? (
                   <div className={styles.loadMoreWrap}>
                     <button
                       className={styles.loadMoreBtn}
                       onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
                     >
-                      Show more ({filtered.length - visibleCount} remaining)
+                      {translate({
+                          id: "skillsHub.loadMore",
+                          message: "Show more ({count} remaining)",
+                          description: "Button that renders the next page of skill cards; {count} is the number of remaining skills",
+                        }, { count: String(filtered.length - visibleCount) })}
+
                     </button>
                   </div>
-                )}
+                ) : scopeIncomplete ? (
+                  // Everything loaded so far is on screen: continue by pulling
+                  // the next shards instead of pretending the catalog ended.
+                  <div className={styles.loadMoreWrap}>
+                    <button className={styles.loadMoreBtn} onClick={loadNextShardBatch}>
+                      {translate({
+                        id: "skillsHub.progress.loadMore",
+                        message: "Load more shards",
+                        description: "Button shown when the loaded shards are exhausted but more of the catalog can still be pulled",
+                      })}
+                    </button>
+                  </div>
+                ) : null}
               </>
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyIcon}>{"\u{1F50D}"}</div>
-                <h3 className={styles.emptyTitle}>No skills found</h3>
+                <h3 className={styles.emptyTitle}>
+                  <Translate
+                    id="skillsHub.empty.title"
+                    description="Title shown when the filters match no skill"
+                  >
+                    No skills found
+                  </Translate>
+                </h3>
                 <p className={styles.emptyDesc}>
-                  Try a different search term or clear your filters.
+                  <Translate
+                    id="skillsHub.empty.desc"
+                    description="Hint shown when the filters match no skill"
+                  >
+                    Try a different search term or clear your filters.
+                  </Translate>
                 </p>
                 <button className={styles.emptyReset} onClick={clearAll}>
-                  Reset all filters
+                  <Translate
+                    id="skillsHub.empty.reset"
+                    description="Button that clears every filter when no skill matches"
+                  >
+                    Reset all filters
+                  </Translate>
                 </button>
               </div>
             )}

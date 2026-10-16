@@ -35,7 +35,9 @@ const llmsScript = join(scriptDir, "generate-llms-txt.py");
 const cronBlueprintsScript = join(scriptDir, "extract-automation-blueprints.py");
 const pluginsScript = join(scriptDir, "extract-plugins.py");
 const pluginStarsScript = join(scriptDir, "fetch-plugin-stars.py");
+const shardsScript = join(scriptDir, "build-skills-shards.mjs");
 const outputFile = join(websiteDir, "static", "api", "skills.json");
+const shardsDir = join(websiteDir, "static", "api", "skills-shards");
 const pluginsOutputFile = join(websiteDir, "static", "api", "plugins.json");
 const pluginsMetaOutputFile = join(websiteDir, "static", "api", "plugins-meta.json");
 const unifiedIndexFile = join(websiteDir, "static", "api", "skills-index.json");
@@ -139,6 +141,32 @@ if (!existsSync(extractScript)) {
     writeEmptyFallback("python3 not found");
   } else if (r.status !== 0) {
     writeEmptyFallback(`extract-skills.py exited with status ${r.status}`);
+  }
+}
+
+// 1b) skills-shards/ — the lightweight index + <=2 MB shards the Skills Hub
+//     now reads instead of the monolithic skills.json (63 MB / 100k records).
+//     Input is whatever step 1 produced, so a missing python3 (empty
+//     skills.json fallback) still yields a valid, empty index. Non-fatal: the
+//     page falls back to the monolithic file if this step can't run.
+if (!existsSync(shardsScript)) {
+  console.warn("[prebuild] build-skills-shards.mjs skipped (script missing)");
+} else {
+  const r = spawnSync(
+    process.execPath,
+    [shardsScript, "--input", outputFile, "--out", shardsDir],
+    { stdio: "inherit", cwd: websiteDir },
+  );
+  if (r.error) {
+    console.warn(
+      `[prebuild] build-skills-shards.mjs failed (${r.error.message}); ` +
+        `Skills Hub will fall back to skills.json`,
+    );
+  } else if (r.status !== 0) {
+    console.warn(
+      `[prebuild] build-skills-shards.mjs exited with status ${r.status}; ` +
+        `Skills Hub will fall back to skills.json`,
+    );
   }
 }
 
