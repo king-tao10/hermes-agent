@@ -122,6 +122,15 @@ const config: Config = {
         autoCollapseCategories: true,
       },
     },
+    // Navbar and footer labels are localised through the theme i18n files —
+    // i18n/<locale>/docusaurus-theme-classic/navbar.json (keys `item.label.<Label>`)
+    // and footer.json (keys `link.title.<Title>`, `link.item.label.<Label>`) — which
+    // theme-classic's translateThemeConfig() applies for the active locale.
+    // The labels below are therefore left as plain English source strings.
+    // Do NOT wrap them in translate() here: '@docusaurus/Translate' is a webpack
+    // alias onto @docusaurus/core/lib/client/exports/Translate (which imports the
+    // generated @generated/codeTranslations module), and the site config is
+    // evaluated by plain Node through loadFreshModule — it cannot resolve either.
     navbar: {
       title: 'Hermes Agent',
       logo: {

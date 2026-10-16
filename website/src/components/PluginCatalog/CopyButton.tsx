@@ -1,8 +1,14 @@
 import React, { useCallback, useState } from "react";
+import { translate } from "@docusaurus/Translate";
 import styles from "../../pages/plugins/styles.module.css";
 
 /** Copies an install command; shared by the catalog cards and the plugin pages. */
 export default function CopyButton({ text }: { text: string }) {
+  const copyLabel = translate({
+    id: "pluginCatalog.copyButton.label",
+    message: "Copy install command",
+    description: "Tooltip and accessible label of the button that copies a plugin's install command",
+  });
   const [copied, setCopied] = useState(false);
   const onCopy = useCallback(
     (e: React.MouseEvent) => {
@@ -21,8 +27,8 @@ export default function CopyButton({ text }: { text: string }) {
     <button
       className={styles.copyBtn}
       onClick={onCopy}
-      title="Copy install command"
-      aria-label="Copy install command"
+      title={copyLabel}
+      aria-label={copyLabel}
     >
       {copied ? (
         <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
@@ -38,7 +44,19 @@ export default function CopyButton({ text }: { text: string }) {
           <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z" />
         </svg>
       )}
-      <span className={styles.copyBtnLabel}>{copied ? "Copied" : "Copy"}</span>
+      <span className={styles.copyBtnLabel}>
+        {copied
+          ? translate({
+              id: "pluginCatalog.copyButton.copied",
+              message: "Copied",
+              description: "Copy button label right after the install command was copied",
+            })
+          : translate({
+              id: "pluginCatalog.copyButton.copy",
+              message: "Copy",
+              description: "Copy button label before the install command is copied",
+            })}
+      </span>
     </button>
   );
 }

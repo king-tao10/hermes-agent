@@ -1,0 +1,886 @@
+{
+  "authorPage.backToCatalog": {
+    "description": "Link back to the plugin catalog grid",
+    "message": "← 返回目录"
+  },
+  "authorPage.breadcrumb": {
+    "description": "Accessible label of the breadcrumb navigation on a maintainer page",
+    "message": "面包屑导航"
+  },
+  "authorPage.count.many": {
+    "description": "Byline on a maintainer page; {count} is the number of plugins",
+    "message": "目录中有 {count} 个插件"
+  },
+  "authorPage.count.one": {
+    "description": "Byline on a maintainer page with a single plugin",
+    "message": "目录中有 1 个插件"
+  },
+  "authorPage.crumb.authors": {
+    "description": "Breadcrumb crumb for the maintainer namespaces",
+    "message": "作者"
+  },
+  "authorPage.crumb.catalog": {
+    "description": "First breadcrumb link on a maintainer page",
+    "message": "插件目录"
+  },
+  "authorPage.description.many": {
+    "description": "Meta description of a maintainer page; {count} is the number of plugins and {name} the maintainer name",
+    "message": "已审阅目录中由 {name} 提供的 {count} 个 Hermes Agent 插件。"
+  },
+  "authorPage.description.one": {
+    "description": "Meta description of a maintainer page with a single plugin; {name} is the maintainer name",
+    "message": "已审阅目录中由 {name} 提供的 1 个 Hermes Agent 插件。"
+  },
+  "authorPage.eyebrow": {
+    "description": "Small heading above the maintainer name",
+    "message": "插件作者"
+  },
+  "authorPage.firstListed": {
+    "description": "Byline fragment with the date the maintainer's first plugin was listed; {date} is an absolute date",
+    "message": " · 首次收录于 {date}"
+  },
+  "authorPage.official": {
+    "description": "Byline fragment with the number of official plugins; {count} is the count",
+    "message": " · {count} 个官方"
+  },
+  "authorPage.stars": {
+    "description": "Byline fragment with the total star count across the maintainer's plugins; {count} is the star count",
+    "message": " · ★ 合计 {count} 个 GitHub 星标"
+  },
+  "authorPage.title": {
+    "description": "Browser tab title of a maintainer page; {name} is the maintainer name",
+    "message": "{name} 的插件 · 插件目录"
+  },
+  "pluginCatalog.card.addToAgent": {
+    "description": "Button on a plugin card inside the picker embed that adds the plugin to the host agent",
+    "message": "+ 添加到当前 Agent"
+  },
+  "pluginCatalog.card.added": {
+    "description": "Added date on a plugin card; {time} is a relative or absolute date",
+    "message": "加入于 {time}"
+  },
+  "pluginCatalog.card.addedTitle": {
+    "description": "Tooltip of the Added date on a plugin card; {date} is an absolute date",
+    "message": "加入目录时间：{date}"
+  },
+  "pluginCatalog.card.desktopInstallTitle": {
+    "description": "Tooltip of the Open in Hermes Desktop button on a plugin card",
+    "message": "在 Hermes 桌面端打开「安装插件」对话框，版本为已审阅版本。没有客户端？请使用下方的安装命令。"
+  },
+  "pluginCatalog.card.documentation": {
+    "description": "Link on a plugin card to the plugin's external documentation",
+    "message": "文档 ↗"
+  },
+  "pluginCatalog.card.filterBy": {
+    "description": "Tooltip of the category chip on a plugin card; {label} is the category name",
+    "message": "按 {label} 筛选"
+  },
+  "pluginCatalog.card.hook.many": {
+    "description": "Capability chip: number of hooks the plugin provides",
+    "message": "{count} 个钩子"
+  },
+  "pluginCatalog.card.hook.one": {
+    "description": "Capability chip: the plugin provides a single hook",
+    "message": "1 个钩子"
+  },
+  "pluginCatalog.card.maintainer": {
+    "description": "Fact row label on a plugin card: who maintains the plugin",
+    "message": "维护者"
+  },
+  "pluginCatalog.card.middleware": {
+    "description": "Capability chip: amount of middleware the plugin provides",
+    "message": "{count} 个中间件"
+  },
+  "pluginCatalog.card.noDescription": {
+    "description": "Placeholder shown on a plugin card that has no description",
+    "message": "暂无描述。"
+  },
+  "pluginCatalog.card.openInDesktop": {
+    "description": "Button that deep-links into the Hermes Desktop app to install the plugin",
+    "message": "在 Hermes 桌面端打开"
+  },
+  "pluginCatalog.card.pinTitleWithRequirement": {
+    "description": "Tooltip of the pinned commit on a plugin card when it requires a minimum Hermes version",
+    "message": "{sha} · 需要 hermes {version}"
+  },
+  "pluginCatalog.card.pinned": {
+    "description": "Fact row label on a plugin card: the reviewed commit the plugin is pinned to",
+    "message": "锁定版本"
+  },
+  "pluginCatalog.card.pluginPage": {
+    "description": "Link on a plugin card to the plugin's own catalog page",
+    "message": "插件页面 →"
+  },
+  "pluginCatalog.card.repository": {
+    "description": "Link on a plugin card to the plugin's source repository",
+    "message": "代码仓库 ↗"
+  },
+  "pluginCatalog.card.starsTitle": {
+    "description": "Tooltip of the star pill on a plugin card; {count} is the star count",
+    "message": "{count} 个 GitHub 星标"
+  },
+  "pluginCatalog.card.tool.many": {
+    "description": "Capability chip: number of tools the plugin provides",
+    "message": "{count} 个工具"
+  },
+  "pluginCatalog.card.tool.one": {
+    "description": "Capability chip: the plugin provides a single tool",
+    "message": "1 个工具"
+  },
+  "pluginCatalog.card.toolsLabel": {
+    "description": "Fact row label on a plugin card: the tools the plugin provides",
+    "message": "工具"
+  },
+  "pluginCatalog.card.updated": {
+    "description": "Updated date on a plugin card; {time} is a relative or absolute date",
+    "message": "更新于 {time}"
+  },
+  "pluginCatalog.card.updatedTitle": {
+    "description": "Tooltip of the Updated date on a plugin card; {date} is an absolute date",
+    "message": "最近一次目录变更：{date}"
+  },
+  "pluginCatalog.card.versionTitle": {
+    "description": "Tooltip of the version pill on a plugin card",
+    "message": "版本 {version}，提交 {sha}"
+  },
+  "pluginCatalog.category.automation.blurb": {
+    "message": "钩子、唤醒触发与会话自动化",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.automation.label": {
+    "message": "自动化",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.desktop.blurb": {
+    "message": "Hermes Desktop 的面板、标签页与视图",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.desktop.label": {
+    "message": "桌面",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.general.blurb": {
+    "message": "跨多个领域的插件",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.general.label": {
+    "message": "通用",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.memory.blurb": {
+    "message": "记忆提供方与上下文引擎",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.memory.label": {
+    "message": "记忆",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.models.blurb": {
+    "message": "模型与推理提供方",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.models.label": {
+    "message": "模型",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.platform.blurb": {
+    "message": "消息平台与渠道适配器",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.platform.label": {
+    "message": "平台",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.tools.blurb": {
+    "message": "智能体可调用的新工具",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.tools.label": {
+    "message": "工具",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.voice.blurb": {
+    "message": "语音、TTS 与实时音频",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.voice.label": {
+    "message": "语音",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.category.web.blurb": {
+    "message": "搜索后端、内容提取与浏览器控制",
+    "description": "One-line description of a plugin category"
+  },
+  "pluginCatalog.category.web.label": {
+    "message": "网络与浏览器",
+    "description": "Category label of a plugin catalog entry"
+  },
+  "pluginCatalog.categoryGroup.label": {
+    "description": "Accessible label of the category pill group",
+    "message": "插件分类"
+  },
+  "pluginCatalog.copyButton.copied": {
+    "description": "Copy button label right after the install command was copied",
+    "message": "已复制"
+  },
+  "pluginCatalog.copyButton.copy": {
+    "description": "Copy button label before the install command is copied",
+    "message": "复制"
+  },
+  "pluginCatalog.copyButton.label": {
+    "description": "Tooltip and accessible label of the button that copies a plugin's install command",
+    "message": "复制安装命令"
+  },
+  "pluginCatalog.crossNav.label": {
+    "description": "Accessible label of the Skills/Plugins cross-navigation in the hero",
+    "message": "目录页面"
+  },
+  "pluginCatalog.crossNav.plugins": {
+    "description": "Label of the Plugins tab in the catalog cross-navigation",
+    "message": "插件"
+  },
+  "pluginCatalog.crossNav.skills": {
+    "description": "Label of the Skills tab in the catalog cross-navigation",
+    "message": "技能"
+  },
+  "pluginCatalog.empty.desc": {
+    "description": "Explanation shown when the plugin catalog contains no entry at all",
+    "message": "插件目录是一份经人工审阅的 Hermes 插件精选列表 —— 每个条目都锁定到确切的提交。想收录你的插件？提交通道始终开放。"
+  },
+  "pluginCatalog.empty.docsCta": {
+    "description": "Link to the catalog documentation on the empty catalog page",
+    "message": "阅读目录文档"
+  },
+  "pluginCatalog.empty.submitCta": {
+    "description": "Link to the submission guide on the empty catalog page",
+    "message": "如何提交插件"
+  },
+  "pluginCatalog.empty.title": {
+    "description": "Title shown when the plugin catalog contains no entry at all",
+    "message": "目录才刚刚起步"
+  },
+  "pluginCatalog.filter.all": {
+    "description": "Tier pill that clears the tier filter",
+    "message": "全部"
+  },
+  "pluginCatalog.filter.allCategories": {
+    "description": "Option and pill that clear the category filter",
+    "message": "全部分类"
+  },
+  "pluginCatalog.filter.allSources": {
+    "description": "Option that clears the tier filter",
+    "message": "全部来源"
+  },
+  "pluginCatalog.filter.category": {
+    "description": "Label of the category filter dropdown",
+    "message": "分类"
+  },
+  "pluginCatalog.filter.sort": {
+    "description": "Label of the sort control, shown in the toolbar and above the sort pills",
+    "message": "排序"
+  },
+  "pluginCatalog.filter.source": {
+    "description": "Label of the tier (official/community) filter dropdown",
+    "message": "来源"
+  },
+  "pluginCatalog.filtersToggle": {
+    "description": "Label of the button that opens the plugin filters on mobile",
+    "message": "筛选"
+  },
+  "pluginCatalog.footer.privacy": {
+    "description": "Link label to the Nous Research privacy policy",
+    "message": "隐私政策"
+  },
+  "pluginCatalog.footer.terms": {
+    "description": "Link label to the Nous Research terms of service",
+    "message": "服务条款"
+  },
+  "pluginCatalog.heroMeta.counts": {
+    "description": "Catalog size line; {plugins} is the number of plugins and {categories} the number of categories",
+    "message": "共 {plugins} 个插件，覆盖 {categories} 个分类"
+  },
+  "pluginCatalog.heroMeta.recently": {
+    "description": "Fallback shown when the last catalog build time is unknown",
+    "message": "最近"
+  },
+  "pluginCatalog.heroMeta.timestampTitle": {
+    "description": "Tooltip of the catalog timestamp line",
+    "message": "目录生成于 {generatedAt}；热度排名截至 {starsFetchedAt}"
+  },
+  "pluginCatalog.heroMeta.updated": {
+    "description": "Prefix placed before the relative time of the last catalog build",
+    "message": "更新于"
+  },
+  "pluginCatalog.heroSub": {
+    "description": "Hero sentence of the Plugin Catalog page",
+    "message": "为 Hermes 增添新能力。记忆、语音、消息、浏览、桌面端面板等，皆由社区构建。"
+  },
+  "pluginCatalog.heroTitle": {
+    "description": "Main heading of the Plugin Catalog page",
+    "message": "插件目录"
+  },
+  "pluginCatalog.loadFailed": {
+    "description": "Shown in the hero when the plugin catalog could not be loaded; {error} is the error text",
+    "message": "· 目录加载失败（{error}）"
+  },
+  "pluginCatalog.loading.title": {
+    "description": "Title of the card shown while the plugin catalog is downloading",
+    "message": "正在加载目录…"
+  },
+  "pluginCatalog.miniCard.noDescription": {
+    "description": "Placeholder shown on a compact plugin card that has no description",
+    "message": "暂无描述。"
+  },
+  "pluginCatalog.miniCard.starsTitle": {
+    "description": "Tooltip of the star count on a compact plugin card; {count} is the star count and {repo} the repository URL",
+    "message": "{repo} 上有 {count} 个 GitHub 星标"
+  },
+  "pluginCatalog.noResults.desc": {
+    "description": "Hint shown when the filters match no plugin",
+    "message": "请换个搜索词，或清除筛选条件。"
+  },
+  "pluginCatalog.noResults.reset": {
+    "description": "Button that clears every filter when no plugin matches",
+    "message": "重置全部筛选"
+  },
+  "pluginCatalog.noResults.title": {
+    "description": "Title shown when the filters match no plugin",
+    "message": "未找到插件"
+  },
+  "pluginCatalog.pageDescription": {
+    "description": "Meta description of the Plugin Catalog page",
+    "message": "为 Hermes 增添新能力：一键安装经审阅的插件"
+  },
+  "pluginCatalog.pageTitle": {
+    "description": "Browser tab title of the Plugin Catalog page",
+    "message": "插件目录"
+  },
+  "pluginCatalog.results.clear": {
+    "description": "Button in the results bar that clears search, tier and category filters",
+    "message": "清除筛选"
+  },
+  "pluginCatalog.results.for": {
+    "description": "Results bar line for a search query; {query} is the quoted query",
+    "message": "{query} 的搜索结果"
+  },
+  "pluginCatalog.results.many": {
+    "description": "Results bar count with the number of matching plugins",
+    "message": "{count} 个插件"
+  },
+  "pluginCatalog.results.one": {
+    "description": "Results bar count when exactly one plugin matches",
+    "message": "1 个插件"
+  },
+  "pluginCatalog.searchPlaceholder": {
+    "description": "Placeholder of the plugin search box",
+    "message": "搜索插件"
+  },
+  "pluginCatalog.searchTip": {
+    "description": "Tooltip of the plugin search box",
+    "message": "提示：按“/”键可快速聚焦搜索框"
+  },
+  "pluginCatalog.section.viewOnly": {
+    "description": "Button in a category section header that filters the grid down to that category; {label} is the category name",
+    "message": "只看 {label} →"
+  },
+  "pluginCatalog.sort.mostStarred": {
+    "description": "Sort option: plugins with the most GitHub stars first",
+    "message": "星标最多"
+  },
+  "pluginCatalog.sort.mostStarred.title": {
+    "description": "Tooltip of the Most starred sort option",
+    "message": "按 GitHub 星标数从多到少排列"
+  },
+  "pluginCatalog.sort.newest": {
+    "description": "Sort option: most recently added to the catalog first",
+    "message": "最新"
+  },
+  "pluginCatalog.sort.newest.title": {
+    "description": "Tooltip of the Newest sort option",
+    "message": "最近加入目录的排在前面"
+  },
+  "pluginCatalog.sort.recentlyUpdated": {
+    "description": "Sort option: most recently re-pinned or edited first",
+    "message": "最近更新"
+  },
+  "pluginCatalog.sort.recentlyUpdated.title": {
+    "description": "Tooltip of the Recently updated sort option",
+    "message": "最近重新锁定或编辑的排在前面"
+  },
+  "pluginCatalog.sortGroup.label": {
+    "description": "Accessible label of the sort pill group",
+    "message": "排序插件"
+  },
+  "pluginCatalog.submitLink": {
+    "description": "Link to the guide explaining how to submit a plugin to the catalog",
+    "message": "提交到目录 →"
+  },
+  "pluginCatalog.submitPrompt": {
+    "description": "Prompt shown above the plugin submission link",
+    "message": "开发了插件？"
+  },
+  "pluginCatalog.tier.community.label": {
+    "message": "社区",
+    "description": "Tier badge of a plugin catalog entry"
+  },
+  "pluginCatalog.tier.official.label": {
+    "message": "官方",
+    "description": "Tier badge of a plugin catalog entry"
+  },
+  "pluginCatalog.time.dayAgo": {
+    "message": "1 天前",
+    "description": "Relative time, a single day"
+  },
+  "pluginCatalog.time.daysAgo": {
+    "message": "{n} 天前",
+    "description": "Relative time in days; {n} is the count"
+  },
+  "pluginCatalog.time.hourAgo": {
+    "message": "1 小时前",
+    "description": "Relative time, a single hour"
+  },
+  "pluginCatalog.time.hoursAgo": {
+    "message": "{n} 小时前",
+    "description": "Relative time in hours; {n} is the count"
+  },
+  "pluginCatalog.time.justNow": {
+    "message": "刚刚",
+    "description": "Relative time for a catalog entry touched less than a minute ago"
+  },
+  "pluginCatalog.time.minuteAgo": {
+    "message": "1 分钟前",
+    "description": "Relative time, a single minute"
+  },
+  "pluginCatalog.time.minutesAgo": {
+    "message": "{n} 分钟前",
+    "description": "Relative time in minutes; {n} is the count"
+  },
+  "pluginCatalog.time.monthAgo": {
+    "message": "1 个月前",
+    "description": "Relative time, a single month"
+  },
+  "pluginCatalog.time.monthsAgo": {
+    "message": "{n} 个月前",
+    "description": "Relative time in months; {n} is the count"
+  },
+  "pluginPage.backToCatalog": {
+    "description": "Link back to the plugin catalog grid",
+    "message": "← 返回目录"
+  },
+  "pluginPage.breadcrumb": {
+    "description": "Accessible label of the breadcrumb navigation on a plugin page",
+    "message": "面包屑导航"
+  },
+  "pluginPage.byline.added": {
+    "description": "Byline prefix before the date the plugin was first listed",
+    "message": " · 加入于 "
+  },
+  "pluginPage.byline.by": {
+    "description": "Byline prefix before the maintainer link on a plugin page",
+    "message": " · 作者 "
+  },
+  "pluginPage.byline.updated": {
+    "description": "Byline prefix before the date the plugin was last re-pinned",
+    "message": " · 更新于 "
+  },
+  "pluginPage.cap.env": {
+    "description": "Capability list heading: environment variables the plugin requires",
+    "message": "所需环境变量"
+  },
+  "pluginPage.cap.hooks": {
+    "description": "Capability list heading: hooks the plugin provides",
+    "message": "钩子"
+  },
+  "pluginPage.cap.middleware": {
+    "description": "Capability list heading: middleware the plugin provides",
+    "message": "中间件"
+  },
+  "pluginPage.cap.tools": {
+    "description": "Capability list heading: tools the plugin provides",
+    "message": "工具"
+  },
+  "pluginPage.catalogBuilt": {
+    "description": "Footer note with the date the catalog was built; {date} is an absolute date",
+    "message": " · 目录构建于 {date}"
+  },
+  "pluginPage.crumb.catalog": {
+    "description": "First breadcrumb link on a plugin page",
+    "message": "插件目录"
+  },
+  "pluginPage.desktopInstallTitle": {
+    "description": "Tooltip of the install button on a plugin page",
+    "message": "在 Hermes 桌面端打开「安装插件」对话框，版本为已审阅版本。没有客户端？请使用安装命令。"
+  },
+  "pluginPage.disclosure.label": {
+    "description": "Bold label of a disclosure note rendered from the plugin description",
+    "message": "披露"
+  },
+  "pluginPage.documentation": {
+    "description": "Link to the plugin's external documentation",
+    "message": "文档 ↗"
+  },
+  "pluginPage.fact.anyVersion": {
+    "description": "Shown when a plugin does not require a specific Hermes version",
+    "message": "（任意版本）"
+  },
+  "pluginPage.fact.category": {
+    "description": "Fact row label on a plugin page: the plugin category",
+    "message": "分类"
+  },
+  "pluginPage.fact.lastRepin": {
+    "description": "Fact row label on a plugin page: when the plugin was last re-pinned",
+    "message": "最近重新锁定"
+  },
+  "pluginPage.fact.listed": {
+    "description": "Fact row label on a plugin page: when the plugin was first listed",
+    "message": "收录时间"
+  },
+  "pluginPage.fact.maintainer": {
+    "description": "Fact row label on a plugin page: who maintains the plugin",
+    "message": "维护者"
+  },
+  "pluginPage.fact.path": {
+    "description": "Fact row label on a plugin page: the subdirectory the plugin lives in",
+    "message": "仓库内路径"
+  },
+  "pluginPage.fact.pinnedCommit": {
+    "description": "Fact row label on a plugin page: the exact commit the entry installs",
+    "message": "锁定提交"
+  },
+  "pluginPage.fact.platforms": {
+    "description": "Fact row label on a plugin page: supported operating systems",
+    "message": "平台"
+  },
+  "pluginPage.fact.requires": {
+    "description": "Fact row label on a plugin page: the minimum Hermes version",
+    "message": "依赖"
+  },
+  "pluginPage.fact.tier": {
+    "description": "Fact row label on a plugin page: official or community",
+    "message": "层级"
+  },
+  "pluginPage.fact.version": {
+    "description": "Fact row label on a plugin page: the plugin version",
+    "message": "版本"
+  },
+  "pluginPage.metaDescription": {
+    "description": "Meta description of a plugin page when the plugin has no description; {name} is the plugin name",
+    "message": "{name} —— 一个 Hermes Agent 插件"
+  },
+  "pluginPage.moreBy": {
+    "description": "Section title listing other plugins from the same maintainer; {author} is the maintainer name",
+    "message": "{author} 的更多插件"
+  },
+  "pluginPage.moreBy.all": {
+    "description": "Link to the maintainer page; {count} is the number of plugins and {author} the maintainer name",
+    "message": "{author} 的全部 {count} 个插件 →"
+  },
+  "pluginPage.openInDesktop": {
+    "description": "Button that deep-links into the Hermes Desktop app to install the plugin",
+    "message": "在 Hermes 桌面端打开"
+  },
+  "pluginPage.readme.note": {
+    "description": "Note next to the README heading; {sha} is the reviewed commit reference",
+    "message": "来自已审阅的提交 {sha}；作者重新锁定版本后会同步更新。"
+  },
+  "pluginPage.repository": {
+    "description": "Link to the plugin's source repository",
+    "message": "代码仓库 ↗"
+  },
+  "pluginPage.reviewedSource": {
+    "description": "Link to the exact reviewed commit of the plugin; {sha} is the short commit hash",
+    "message": "已审阅源码 @ {sha} ↗"
+  },
+  "pluginPage.screenshotAlt": {
+    "description": "Alt text of a screenshot image; {name} is the plugin name and {index} the position in the gallery",
+    "message": "{name} 截图 {index}"
+  },
+  "pluginPage.screenshots": {
+    "description": "Section title of the plugin screenshot gallery",
+    "message": "截图"
+  },
+  "pluginPage.sideNote": {
+    "description": "Side note on a plugin page explaining the reviewed pin workflow; {link} is a link to the how-listing-works guide",
+    "message": "每个条目安装的都是上方那个确切的提交。更新只通过经过审阅的重新锁定 PR 送达用户 —— {link}。"
+  },
+  "pluginPage.sideNote.link": {
+    "description": "Link text inside the side note on a plugin page",
+    "message": "收录流程说明"
+  },
+  "pluginPage.starsTitle": {
+    "description": "Tooltip of the star pill in the plugin page hero; {count} is the star count",
+    "message": "{count} 个 GitHub 星标"
+  },
+  "pluginPage.starsTitle.asOf": {
+    "description": "Tooltip of the star pill in the plugin page hero when the star count has a fetch date",
+    "message": "截至 {date}，{count} 个 GitHub 星标"
+  },
+  "pluginPage.title": {
+    "description": "Browser tab title of a plugin page; {name} is the plugin name",
+    "message": "{name} · 插件目录"
+  },
+  "pluginPage.versionTitle": {
+    "description": "Tooltip of the version pill in the plugin page hero",
+    "message": "版本 {version}，提交 {sha}"
+  },
+  "pluginPage.whatItAdds": {
+    "description": "Section title listing the tools, hooks, middleware and env vars a plugin adds",
+    "message": "新增能力"
+  },
+  "skillsHub.card.addToAgent": {
+    "description": "Button on a skill card inside the picker embed that adds the skill to the host agent",
+    "message": "+ 添加到当前 Agent"
+  },
+  "skillsHub.card.author": {
+    "description": "Detail row label on an expanded skill card",
+    "message": "作者"
+  },
+  "skillsHub.card.filterBy": {
+    "description": "Tooltip of the category button on a skill card; {label} is the category name",
+    "message": "按 {label} 筛选"
+  },
+  "skillsHub.card.installInHermes": {
+    "description": "Link on a skill card that opens the install flow in the Hermes app",
+    "message": "在 Hermes 中安装"
+  },
+  "skillsHub.card.license": {
+    "description": "Detail row label on an expanded skill card",
+    "message": "许可协议"
+  },
+  "skillsHub.card.noDescription": {
+    "description": "Placeholder shown on a skill card that has no description",
+    "message": "暂无描述。"
+  },
+  "skillsHub.card.overview": {
+    "description": "Label of the overview block on an expanded skill card",
+    "message": "概览"
+  },
+  "skillsHub.card.prerequisites": {
+    "description": "Label of the prerequisites block (env vars, commands) on an expanded skill card",
+    "message": "前置依赖"
+  },
+  "skillsHub.card.version": {
+    "description": "Detail row label on an expanded skill card",
+    "message": "版本"
+  },
+  "skillsHub.card.viewDocs": {
+    "description": "Link on an expanded skill card to the skill's generated documentation page",
+    "message": "查看完整文档 →"
+  },
+  "skillsHub.card.viewSource": {
+    "description": "Link on an expanded skill card to the skill's upstream repository",
+    "message": "查看源码 ↗"
+  },
+  "skillsHub.catalog.rebuildNote": {
+    "description": "Note that the catalog index is rebuilt automatically twice a day",
+    "message": "每日自动重建两次"
+  },
+  "skillsHub.catalog.recently": {
+    "description": "Fallback shown when the last catalog refresh time is unknown",
+    "message": "最近"
+  },
+  "skillsHub.catalog.refreshed": {
+    "description": "Sentence placed before the relative time of the last catalog refresh",
+    "message": "目录更新于"
+  },
+  "skillsHub.copyButton.copied": {
+    "description": "Copy button label right after the install command was copied",
+    "message": "已复制"
+  },
+  "skillsHub.copyButton.copy": {
+    "description": "Copy button label before the install command is copied",
+    "message": "复制"
+  },
+  "skillsHub.copyButton.label": {
+    "description": "Tooltip and accessible label of the button that copies a skill's install command",
+    "message": "复制安装命令"
+  },
+  "skillsHub.crossNav.label": {
+    "description": "Accessible label of the Skills/Plugins cross-navigation in the hero",
+    "message": "目录页面"
+  },
+  "skillsHub.crossNav.plugins": {
+    "description": "Label of the Plugins tab in the catalog cross-navigation",
+    "message": "插件"
+  },
+  "skillsHub.crossNav.skills": {
+    "description": "Label of the Skills tab in the catalog cross-navigation",
+    "message": "技能"
+  },
+  "skillsHub.empty.desc": {
+    "description": "Hint shown when the filters match no skill",
+    "message": "请换个搜索词，或清除筛选条件。"
+  },
+  "skillsHub.empty.reset": {
+    "description": "Button that clears every filter when no skill matches",
+    "message": "重置全部筛选"
+  },
+  "skillsHub.empty.title": {
+    "description": "Title shown when the filters match no skill",
+    "message": "未找到技能"
+  },
+  "skillsHub.error.desc": {
+    "description": "Explanation shown when the skills catalog fails to load; {error} is the error text",
+    "message": "{error}。目录由公共 CDN 提供 —— 受限网络可能需要可用的代理。请检查网络连接后重试。"
+  },
+  "skillsHub.error.retry": {
+    "description": "Button that retries loading the skills catalog",
+    "message": "重试"
+  },
+  "skillsHub.error.stalled": {
+    "description": "Error text shown when the catalog download produced no data for a while; {seconds} is the idle timeout in seconds",
+    "message": "目录抓取停滞 —— {seconds} 秒内未收到任何数据"
+  },
+  "skillsHub.error.title": {
+    "description": "Title of the card shown when the skills catalog fails to load",
+    "message": "无法加载目录"
+  },
+  "skillsHub.filter.all": {
+    "description": "Source pill that clears the source filter",
+    "message": "全部"
+  },
+  "skillsHub.filter.allCategories": {
+    "description": "Option that clears the category filter",
+    "message": "全部分类"
+  },
+  "skillsHub.filter.allSources": {
+    "description": "Option that clears the source filter",
+    "message": "全部来源"
+  },
+  "skillsHub.filter.category": {
+    "description": "Label of the category filter dropdown",
+    "message": "分类"
+  },
+  "skillsHub.filter.source": {
+    "description": "Label of the source (registry) filter dropdown, shown in the toolbar and in the sidebar",
+    "message": "来源"
+  },
+  "skillsHub.filtersToggle": {
+    "description": "Label of the button that opens the skill filters on mobile",
+    "message": "筛选"
+  },
+  "skillsHub.footer.privacy": {
+    "description": "Link label to the Nous Research privacy policy",
+    "message": "隐私政策"
+  },
+  "skillsHub.footer.terms": {
+    "description": "Link label to the Nous Research terms of service",
+    "message": "服务条款"
+  },
+  "skillsHub.hero.loadFailed": {
+    "description": "Shown in the hero when the skills catalog could not be loaded; {error} is the error text",
+    "message": "· 目录加载失败（{error}）"
+  },
+  "skillsHub.heroSub": {
+    "description": "Hero sentence of the Skills Hub page; {count} is the highlighted skill count and {registries} the number of registries",
+    "message": "从 {registries} 个来源中，发现、搜索并安装 {count} 个技能"
+  },
+  "skillsHub.heroTitle": {
+    "description": "Main heading of the Skills Hub page",
+    "message": "技能中心"
+  },
+  "skillsHub.loadMore": {
+    "description": "Button that renders the next page of skill cards; {count} is the number of remaining skills",
+    "message": "显示更多（剩余 {count} 个）"
+  },
+  "skillsHub.loading.desc": {
+    "description": "Progress hint shown while the skills catalog is downloading",
+    "message": "正在从各个来源抓取 8.8 万+ 技能，请稍候。"
+  },
+  "skillsHub.loading.title": {
+    "description": "Title of the card shown while the skills catalog is downloading",
+    "message": "正在加载目录…"
+  },
+  "skillsHub.pageDescription": {
+    "description": "Meta description of the Skills Hub page",
+    "message": "浏览 Hermes Agent 可用的全部技能与插件"
+  },
+  "skillsHub.pageTitle": {
+    "description": "Browser tab title of the Skills Hub page",
+    "message": "技能中心"
+  },
+  "skillsHub.results.clearAll": {
+    "description": "Button in the filter summary that clears every filter",
+    "message": "全部清除"
+  },
+  "skillsHub.results.many": {
+    "description": "Filter summary with the number of matching skills",
+    "message": "{count} 个结果"
+  },
+  "skillsHub.results.one": {
+    "description": "Filter summary when exactly one skill matches",
+    "message": "1 个结果"
+  },
+  "skillsHub.searchPlaceholder": {
+    "description": "Placeholder of the skills search box",
+    "message": "搜索技能"
+  },
+  "skillsHub.sidebar.allSkills": {
+    "description": "Sidebar entry that removes the category filter",
+    "message": "全部技能"
+  },
+  "skillsHub.sidebar.categories": {
+    "description": "Title of the category filter sidebar",
+    "message": "分类"
+  },
+  "skillsHub.sidebar.clear": {
+    "description": "Button that clears the selected category in the sidebar",
+    "message": "清除"
+  },
+  "skillsHub.sidebar.close": {
+    "description": "Accessible label of the button that closes the mobile filter dialog",
+    "message": "关闭技能筛选器"
+  },
+  "skillsHub.stats.builtIn": {
+    "description": "Hero statistic label: skills shipped with Hermes Agent",
+    "message": "内置"
+  },
+  "skillsHub.stats.categories": {
+    "description": "Hero statistic label: number of distinct skill categories",
+    "message": "分类"
+  },
+  "skillsHub.stats.community": {
+    "description": "Hero statistic label: skills from third-party registries",
+    "message": "社区"
+  },
+  "skillsHub.stats.optional": {
+    "description": "Hero statistic label: optional first-party skills",
+    "message": "可选"
+  },
+  "skillsHub.time.dayAgo": {
+    "description": "Relative timestamp for exactly one day ago; {count} is the number of days",
+    "message": "{count} 天前"
+  },
+  "skillsHub.time.daysAgo": {
+    "description": "Relative timestamp for several days; {count} is the number of days",
+    "message": "{count} 天前"
+  },
+  "skillsHub.time.hourAgo": {
+    "description": "Relative timestamp for exactly one hour ago; {count} is the number of hours",
+    "message": "{count} 小时前"
+  },
+  "skillsHub.time.hoursAgo": {
+    "description": "Relative timestamp for several hours; {count} is the number of hours",
+    "message": "{count} 小时前"
+  },
+  "skillsHub.time.justNow": {
+    "description": "Relative timestamp shown when the catalog was refreshed moments ago",
+    "message": "刚刚"
+  },
+  "skillsHub.time.minuteAgo": {
+    "description": "Relative timestamp for exactly one minute ago; {count} is the number of minutes",
+    "message": "{count} 分钟前"
+  },
+  "skillsHub.time.minutesAgo": {
+    "description": "Relative timestamp for several minutes; {count} is the number of minutes",
+    "message": "{count} 分钟前"
+  },
+  "skillsHub.time.monthAgo": {
+    "description": "Relative timestamp for exactly one month ago; {count} is the number of months",
+    "message": "{count} 个月前"
+  },
+  "skillsHub.time.monthsAgo": {
+    "description": "Relative timestamp for several months; {count} is the number of months",
+    "message": "{count} 个月前"
+  }
+}
