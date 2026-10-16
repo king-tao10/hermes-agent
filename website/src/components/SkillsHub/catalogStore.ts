@@ -218,10 +218,10 @@ export interface CatalogWorkerLike {
 /* ------------------------------------------------------------ constants */
 
 /** The index. Fixed path per the T2 contract — never derive it from locale. */
-export const SKILLS_INDEX_URL = "/docs/api/skills-shards/index.json";
+export const SKILLS_INDEX_URL = "/hermes-agent/api/skills-shards/index.json";
 /** Pre-shard entry point, kept as the deploy-order-safe fallback. */
-export const LEGACY_SKILLS_URL = "/docs/api/skills.json";
-export const SKILLS_META_URL = "/docs/api/skills-meta.json";
+export const LEGACY_SKILLS_URL = "/hermes-agent/api/skills.json";
+export const SKILLS_META_URL = "/hermes-agent/api/skills-meta.json";
 
 export const CATALOG_INDEX_SCHEMA_VERSION = 1;
 

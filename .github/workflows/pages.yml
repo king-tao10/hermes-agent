@@ -1,0 +1,117 @@
+name: Deploy patched docs site to GitHub Pages
+
+# 自建站点用：完全独立的标准 Actions（不需要官方的 secrets / App token / 黑匠 runner）。
+# 把本文件放到 fork 的 .github/workflows/pages.yml，并在 Settings → Pages 里把
+# Source 选成 "GitHub Actions"。
+
+on:
+  push:
+    branches: [main, master, zh-i18n-and-skills-hub-perf]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # extract-plugins.py 用 git log 推导每个条目的 added/updated 日期
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps for the data extractors
+        run: python3 -m pip install --disable-pip-version-check ruamel.yaml==0.18.17 httpx==0.28.1
+
+      - name: Install website dependencies
+        run: npm ci
+        working-directory: website
+
+      - name: Point the site at this fork's Pages URL
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          python3 - "$OWNER" "$REPO_NAME" <<'PY'
+          import pathlib, re, sys
+
+          owner, repo = sys.argv[1], sys.argv[2]
+          base = f"/{repo}/"
+
+          cfg = pathlib.Path("website/docusaurus.config.ts")
+          text = cfg.read_text(encoding="utf-8")
+          text = text.replace(
+              "url: 'https://hermes-agent.nousresearch.com'",
+              f"url: 'https://{owner}.github.io'",
+          )
+          text = re.sub(r"baseUrl: '[^']*'", f"baseUrl: '{base}'", text, count=1)
+          cfg.write_text(text, encoding="utf-8")
+
+          # 这些是绝对路径的接口常量，不会跟着 baseUrl 变
+          for target in (
+              "website/src/components/SkillsHub/catalogStore.ts",
+              "website/src/pages/plugins/index.tsx",
+              "website/src/components/AutomationBlueprintsCatalog/index.tsx",
+          ):
+              path = pathlib.Path(target)
+              if not path.exists():
+                  print(f"skip (missing): {target}")
+                  continue
+              path.write_text(
+                  path.read_text(encoding="utf-8").replace('"/docs/api/', f'"{base}api/'),
+                  encoding="utf-8",
+              )
+          print(f"rewrote url -> https://{owner}.github.io and baseUrl/API paths -> {base}")
+          PY
+
+      - name: Build (both locales; prebuild also generates the shards)
+        run: npm run build
+        working-directory: website
+        env:
+          # runbook: 官方 deploy 用 tools-only 解释器渲染图标；这里用 runner 自带的 python3。
+          # 若日志报找不到解释器，把这里换成 `python3` 的绝对路径或 hermes 的解释器。
+          HERMES_PYTHON: python3
+
+      - name: Assert the catalog data and the zh-Hans fix made it into the output
+        working-directory: website
+        run: |
+          set -euo pipefail
+          test -f build/api/skills-shards/index.json || { echo "::error::shard index missing"; exit 1; }
+          node -e "const i=require('./build/api/skills-shards/index.json');console.log('shards',i.shards.length,'total',i.total)"
+          if grep -rl '{n} 小时前\|{n} hours ago' build >/dev/null 2>&1; then
+            echo "::error::literal {n} placeholder leaked into the build"; exit 1
+          fi
+          echo "output looks right"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
